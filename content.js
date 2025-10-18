@@ -1,39 +1,66 @@
-// Create and inject the button into the page
+let sidePanelButton;
+
 function createSidePanelButton() {
-  if (document.getElementById('sidepanel-toggle-btn')) return;
+  if (sidePanelButton) return;
 
-  const button = document.createElement('button');
-  button.id = 'sidepanel-toggle-btn';
-  button.innerHTML = '☰ Open Panel';
-  button.title = 'Open Hello World Side Panel';
+  // Create the button element
+  sidePanelButton = document.createElement('button');
+  sidePanelButton.id = 'sidepanel-toggle-btn';
+  sidePanelButton.textContent = 'Ask Predictor';
+  sidePanelButton.title = 'Ask Predictor';
+  sidePanelButton.style.display = 'none'; // hidden by default
 
-  button.addEventListener('click', () => {
+  // On click -> open panel
+  sidePanelButton.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: 'openSidePanel' });
   });
 
-  // --- FIX: append to <html> instead of <body> ---
-  document.documentElement.appendChild(button);
-
-  // Also force to top layer visually
-  button.style.position = 'fixed';
-  button.style.zIndex = '2147483647';
+  document.documentElement.appendChild(sidePanelButton);
 }
 
+// Show the button near the selected text
+function showButtonNearSelection() {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed) {
+    hideButton();
+    return;
+  }
 
-// Create the button when the page loads
+  const range = selection.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+
+  // Ignore off-screen or invalid selections
+  if (!rect || (rect.width === 0 && rect.height === 0)) {
+    hideButton();
+    return;
+  }
+
+  // Position slightly above and centered
+  const top = window.scrollY + rect.top - 45;
+  const left = window.scrollX + rect.left + rect.width / 2;
+
+  sidePanelButton.style.top = `${top}px`;
+  sidePanelButton.style.left = `${left - sidePanelButton.offsetWidth / 2}px`;
+  sidePanelButton.style.display = 'block';
+}
+
+function hideButton() {
+  if (sidePanelButton) {
+    sidePanelButton.style.display = 'none';
+  }
+}
+
+// Detect when user finishes selecting text
+document.addEventListener('mouseup', () => {
+  setTimeout(showButtonNearSelection, 100);
+});
+document.addEventListener('keyup', () => {
+  setTimeout(showButtonNearSelection, 100);
+});
+
+// Initialize
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', createSidePanelButton);
 } else {
   createSidePanelButton();
 }
-
-// Re-create button when navigating in SPA (Single Page Applications)
-let lastUrl = location.href;
-new MutationObserver(() => {
-  const url = location.href;
-  if (url !== lastUrl) {
-    lastUrl = url;
-    // Small delay to ensure DOM is ready
-    setTimeout(createSidePanelButton, 100);
-  }
-}).observe(document, { subtree: true, childList: true });
