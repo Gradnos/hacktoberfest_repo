@@ -3,22 +3,31 @@ let sidePanelButton;
 function createSidePanelButton() {
   if (sidePanelButton) return;
 
-  // Create the button element
   sidePanelButton = document.createElement('button');
   sidePanelButton.id = 'sidepanel-toggle-btn';
   sidePanelButton.textContent = 'Ask Predictor';
   sidePanelButton.title = 'Ask Predictor';
   sidePanelButton.style.display = 'none'; // hidden by default
 
-  // On click -> open panel
+  // On click -> send selection to background
   sidePanelButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'openSidePanel' });
+    // Slight delay ensures the selection is finalized
+    setTimeout(() => {
+      const selectedText = window.getSelection()?.toString().trim() || '';
+      console.log('🟢 Button clicked, sending selected text:', selectedText);
+
+      // Send message to background (no need to wait for response)
+      chrome.runtime.sendMessage({
+        action: 'openSidePanel',
+        text: selectedText
+      });
+    }, 50);
   });
 
   document.documentElement.appendChild(sidePanelButton);
 }
 
-// Show the button near the selected text
+// Show button near selected text
 function showButtonNearSelection() {
   const selection = window.getSelection();
   if (!selection || selection.isCollapsed) {
@@ -29,13 +38,11 @@ function showButtonNearSelection() {
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
 
-  // Ignore off-screen or invalid selections
   if (!rect || (rect.width === 0 && rect.height === 0)) {
     hideButton();
     return;
   }
 
-  // Position slightly above and centered
   const top = window.scrollY + rect.top - 45;
   const left = window.scrollX + rect.left + rect.width / 2;
 
@@ -50,13 +57,9 @@ function hideButton() {
   }
 }
 
-// Detect when user finishes selecting text
-document.addEventListener('mouseup', () => {
-  setTimeout(showButtonNearSelection, 100);
-});
-document.addEventListener('keyup', () => {
-  setTimeout(showButtonNearSelection, 100);
-});
+// Event listeners
+document.addEventListener('mouseup', () => setTimeout(showButtonNearSelection, 50));
+document.addEventListener('keyup', () => setTimeout(showButtonNearSelection, 50));
 
 // Initialize
 if (document.readyState === 'loading') {

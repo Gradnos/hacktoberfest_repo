@@ -3,7 +3,7 @@
   "name": "Hello World Side Panel",
   "version": "1.0",
   "description": "Displays a side panel with Hello World on every page",
-  "permissions": ["sidePanel", "tabs"],
+  "permissions": ["sidePanel", "tabs", "storage"],
   "side_panel": {
     "default_path": "sidepanel.html"
   },
