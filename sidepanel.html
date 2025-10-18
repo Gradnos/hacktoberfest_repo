@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Ask Predictor</title>
-    <link rel="stylesheet" href="sidepanel.css" />
-  </head>
-  <body>
-    <h2>Ask Predictor</h2>
-    <div id="selected-text">
-      <span id="no-selection">(no text selected)</span>
-    </div>
-    <script src="sidepanel.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>Ask Predictor</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <h2>Ask Predictor</h2>
+  <div id="selected-text">
+    <span id="no-selection">(no text selected)</span>
+  </div>
+
+  <!-- Must use type="module" to allow ES module import -->
+  <script type="module" src="sidepanel.js"></script>
+</body>
 </html>
