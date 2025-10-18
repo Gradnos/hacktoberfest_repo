@@ -1,46 +1,39 @@
-document.addEventListener("mouseup", (event) => { // Add event parameter
-    const selection = window.getSelection().toString().trim();
-    
-    // Check if the click was on the button or its children
-    if (event.target.closest('#ask-button')) {
-        return; // Don't remove the button if clicking on it
-    }
-    
-    removeButton();
+// Create and inject the button into the page
+function createSidePanelButton() {
+  if (document.getElementById('sidepanel-toggle-btn')) return;
 
-    if (selection.length > 0) {
-        const button = document.createElement("button");
-        button.textContent = "Ask Predictor";
-        button.id = "ask-button";
-        Object.assign(button.style, {
-            position: "absolute",
-            top: `${event.pageY + 5}px`,
-            left: `${event.pageX + 5}px`,
-            zIndex: 10000,
-            backgroundColor: "#0a84ff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            padding: "5px 10px",
-            cursor: "pointer"
-        });
-        document.body.appendChild(button);
+  const button = document.createElement('button');
+  button.id = 'sidepanel-toggle-btn';
+  button.innerHTML = '☰ Open Panel';
+  button.title = 'Open Hello World Side Panel';
 
-        button.addEventListener("click", () => {
-            console.log("🟢 Button clicked, sending message to background");
-            chrome.runtime.sendMessage({ type: "ask-predictor", text: selection }, (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error("⚠️ Send failed:", chrome.runtime.lastError.message);
-                } else {
-                    console.log("✅ Message sent successfully", response);
-                }
-            });
-            removeButton();
-        });
-    }
-});
+  button.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openSidePanel' });
+  });
 
-function removeButton() {
-    const oldBtn = document.getElementById("ask-button");
-    if (oldBtn) oldBtn.remove();
+  // --- FIX: append to <html> instead of <body> ---
+  document.documentElement.appendChild(button);
+
+  // Also force to top layer visually
+  button.style.position = 'fixed';
+  button.style.zIndex = '2147483647';
 }
+
+
+// Create the button when the page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', createSidePanelButton);
+} else {
+  createSidePanelButton();
+}
+
+// Re-create button when navigating in SPA (Single Page Applications)
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const url = location.href;
+  if (url !== lastUrl) {
+    lastUrl = url;
+    // Small delay to ensure DOM is ready
+    setTimeout(createSidePanelButton, 100);
+  }
+}).observe(document, { subtree: true, childList: true });

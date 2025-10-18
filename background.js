@@ -1,27 +1,25 @@
-console.log("🟢 background.js loaded");
-
-chrome.runtime.onMessage.addListener(async (message, sender) => {
-    console.log("📨 Message received in background:", message);
-
-    if (message.type === "ask-predictor" && message.text) {
-        await chrome.storage.local.set({ selectedText: message.text });
-        console.log("💾 Text saved:", message.text);
-
-        // Open popup window (no window object needed)
-        const width = 360;
-        const height = 600;
-        const left = 1600; // Adjust if needed
-        const top = 50;
-
-        chrome.windows.create({
-            url: chrome.runtime.getURL("sidebar.html"),
-            type: "popup",
-            width: width,
-            height: height,
-            left: left,
-            top: top
-        }, (win) => {
-            console.log("✅ Popup window opened", win.id);
-        });
+// Background service worker
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'openSidePanel') {
+    // Use sender.tab.id to get the current tab ID
+    if (sender.tab) {
+      chrome.sidePanel.open({ tabId: sender.tab.id });
+    } else {
+      // Fallback: get the active tab in current window
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.sidePanel.open({ tabId: tabs[0].id });
+        }
+      });
     }
+  }
 });
+
+// Enable side panel for all sites by default
+chrome.sidePanel.setOptions({
+  enabled: true
+});
+
+// Set panel behavior - this ensures the panel works on all sites
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  .catch(error => console.log('Error setting panel behavior:', error));
