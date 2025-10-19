@@ -2,6 +2,7 @@
 import { main, ShowMarkets } from './fetcher.js';
 
 const marketsContainer = document.getElementById("selected-text");
+const realcContainer = document.createElement("markets");
 const noSel = document.getElementById("no-selection");
 
 // Helper to update sidebar text
