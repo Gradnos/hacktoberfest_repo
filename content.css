@@ -28,3 +28,8 @@
   height: 28px !important;
   object-fit: contain !important;
 }
+
+/* Ensure we can hide via the hidden attribute despite !important display */
+#sidepanel-toggle-btn[hidden] {
+  display: none !important;
+}

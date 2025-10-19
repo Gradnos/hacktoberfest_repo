@@ -6,7 +6,7 @@ function createSidePanelButton() {
   sidePanelButton = document.createElement('button');
   sidePanelButton.id = 'sidepanel-toggle-btn';
   sidePanelButton.title = 'Ask Tsuri';
-  sidePanelButton.style.display = 'none'; // hidden by default
+  sidePanelButton.hidden = true; // hidden by default
   
   // Create logo and text
   const logo = document.createElement('img');
@@ -21,18 +21,19 @@ function createSidePanelButton() {
   sidePanelButton.appendChild(text);
 
   // On click -> send selection to background
-  sidePanelButton.addEventListener('click', () => {
-    // Slight delay ensures the selection is finalized
-    setTimeout(() => {
-      const selectedText = window.getSelection()?.toString().trim() || '';
-      console.log('🟢 Button clicked, sending selected text:', selectedText);
+  sidePanelButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const selectedText = window.getSelection()?.toString().trim() || '';
+    console.log('🟢 Button clicked, sending selected text:', selectedText);
 
-      // Send message to background (no need to wait for response)
-      chrome.runtime.sendMessage({
-        action: 'openSidePanel',
-        text: selectedText
-      });
-    }, 50);
+    // Send message to background
+    chrome.runtime.sendMessage({
+      action: 'openSidePanel',
+      text: selectedText
+    });
+
+    // Hide button after clicking
+    hideButton();
   });
 
   document.documentElement.appendChild(sidePanelButton);
@@ -59,18 +60,43 @@ function showButtonNearSelection() {
 
   sidePanelButton.style.top = `${top}px`;
   sidePanelButton.style.left = `${left - sidePanelButton.offsetWidth / 2}px`;
-  sidePanelButton.style.display = 'block';
+  sidePanelButton.hidden = false;
 }
 
 function hideButton() {
   if (sidePanelButton) {
-    sidePanelButton.style.display = 'none';
+    sidePanelButton.hidden = true;
   }
 }
 
 // Event listeners
-document.addEventListener('mouseup', () => setTimeout(showButtonNearSelection, 50));
+document.addEventListener('mouseup', (e) => {
+  // Hide button if clicking outside of it
+  if (sidePanelButton && e.target !== sidePanelButton && !sidePanelButton.contains(e.target)) {
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        hideButton();
+      } else {
+        showButtonNearSelection();
+      }
+    }, 50);
+  }
+});
+
 document.addEventListener('keyup', () => setTimeout(showButtonNearSelection, 50));
+
+// Hide button when clicking anywhere that causes deselection
+document.addEventListener('mousedown', (e) => {
+  if (sidePanelButton && e.target !== sidePanelButton && !sidePanelButton.contains(e.target)) {
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        hideButton();
+      }
+    }, 10);
+  }
+});
 
 // Initialize
 if (document.readyState === 'loading') {
