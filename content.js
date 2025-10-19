@@ -5,9 +5,20 @@ function createSidePanelButton() {
 
   sidePanelButton = document.createElement('button');
   sidePanelButton.id = 'sidepanel-toggle-btn';
-  sidePanelButton.textContent = 'Ask Predictor';
-  sidePanelButton.title = 'Ask Predictor';
+  sidePanelButton.title = 'Ask Tsuri';
   sidePanelButton.style.display = 'none'; // hidden by default
+  
+  // Create logo and text
+  const logo = document.createElement('img');
+  logo.src = chrome.runtime.getURL('tsuri-icon.png');
+  logo.alt = 'Tsuri';
+  logo.className = 'tsuri-logo';
+  
+  const text = document.createElement('span');
+  text.textContent = 'Ask Tsuri';
+  
+  sidePanelButton.appendChild(logo);
+  sidePanelButton.appendChild(text);
 
   // On click -> send selection to background
   sidePanelButton.addEventListener('click', () => {

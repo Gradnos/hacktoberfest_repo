@@ -2,20 +2,29 @@
   all: unset;
   position: absolute !important;
   z-index: 2147483647 !important;
-  background: #4285f4 !important;
-  color: white !important;
-  border-radius: 20px !important;
-  padding: 8px 14px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
+  background: #4a4a4a !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 20px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
-  transition: transform 0.2s ease, opacity 0.2s ease !important;
-  opacity: 0.95 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  transition: all 0.15s ease !important;
   white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }
 
 #sidepanel-toggle-btn:hover {
-  transform: scale(1.05);
-  background: #3367d6 !important;
+  background: #3a3a3a !important;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.4) !important;
+}
+
+#sidepanel-toggle-btn .tsuri-logo {
+  width: 28px !important;
+  height: 28px !important;
+  object-fit: contain !important;
 }

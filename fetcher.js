@@ -13,16 +13,16 @@ export async function main(str, progressCallback) {
    window.lastSelectedText = str;
 
   // Step 1: Generating keywords
-  progressCallback?.("Generating keywords...");
+  progressCallback?.("Tsuring keywords...");
   const keyWords = await getkeywords(str);
   progressCallback?.(`Keywords: ${keyWords.join(", ")}`);
   console.log("keyWords: --------", keyWords);
   // Step 2: Fetching markets
-  progressCallback?.("Fetching markets...");
+  progressCallback?.("Tsuring markets...");
   await fetchMarkets(keyWords, progressCallback);
   console.log(markets, str);
   // Step 3: Evaluating markets
-  progressCallback?.("Evaluating markets...");
+  progressCallback?.("Tsuring markets...");
   const validMarkets = [];
 
   const uniqueMarkets = Object.values(
@@ -51,8 +51,8 @@ export function ShowMarkets(markets, container) {
   container.textContent = "";
   container.style.cssText = `
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: #0a0e27;
-    padding: 24px;
+    background: #0f0f0f;
+    padding: 20px;
     min-height: 100vh;
   `;
 
@@ -61,31 +61,20 @@ export function ShowMarkets(markets, container) {
     emptyState.style.cssText = `
       text-align: center;
       color: #6b7280;
-      padding: 60px 20px;
-      font-size: 16px;
+      padding: 48px 20px;
+      font-size: 14px;
     `;
     emptyState.textContent = "No markets found for this search.";
     container.appendChild(emptyState);
     return;
   }
 
-  const header = document.createElement("div");
-  header.style.cssText = `
-    margin-bottom: 24px;
-    color: #fff;
-  `;
-  header.innerHTML = `
-    <h2 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 600;">Related Markets</h2>
-    <p style="margin: 0; color: #9ca3af; font-size: 14px;">${markets.length} market${markets.length === 1 ? '' : 's'} found</p>
-  `;
-  container.appendChild(header);
-
   const grid = document.createElement("div");
   grid.style.cssText = `
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
   `;
 
   markets.forEach((market) => {
@@ -99,39 +88,43 @@ export function ShowMarkets(markets, container) {
 function createMarketCard(market, mainContainer) {
   const card = document.createElement("div");
   card.style.cssText = `
-    background: #1a1f3a;
-    border: 1px solid #2d3348;
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     position: relative;
-    overflow: hidden;
   `;
 
   card.onmouseenter = () => {
-    card.style.borderColor = "#4f46e5";
-    card.style.transform = "translateY(-2px)";
-    card.style.boxShadow = "0 8px 24px rgba(79, 70, 229, 0.15)";
+    card.style.borderColor = "#3a3a3a";
+    card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
   };
   card.onmouseleave = () => {
-    card.style.borderColor = "#2d3348";
-    card.style.transform = "translateY(0)";
+    card.style.borderColor = "#2a2a2a";
     card.style.boxShadow = "none";
   };
 
+  // Header container with icon, title, and percentage
+  const header = document.createElement("div");
+  header.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  `;
+
+  // Icon
   if (market.image || market.icon) {
     const imageContainer = document.createElement("div");
     imageContainer.style.cssText = `
-      width: 80px;
-      height: 80px;
-      float: right;
-      margin-left: 12px;
-      margin-bottom: 8px;
-      overflow: hidden;
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
-      background: #0f1320;
-      border: 1px solid #2d3348;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
     `;
     
     const img = document.createElement("img");
@@ -146,94 +139,27 @@ function createMarketCard(market, mainContainer) {
     };
     
     imageContainer.appendChild(img);
-    card.appendChild(imageContainer);
+    header.appendChild(imageContainer);
   }
 
-  const tags = market.tags || [];
-  if (tags.length > 0) {
-    const tagsContainer = document.createElement("div");
-    tagsContainer.style.cssText = `
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    `;
-    
-    tags.slice(0, 2).forEach(tag => {
-      const tagBadge = document.createElement("div");
-      tagBadge.style.cssText = `
-        background: rgba(99, 102, 241, 0.15);
-        color: #818cf8;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 500;
-        text-transform: capitalize;
-      `;
-      tagBadge.textContent = tag.label || tag;
-      tagsContainer.appendChild(tagBadge);
-    });
-    
-    card.appendChild(tagsContainer);
-  }
-
+  // Title
   const title = document.createElement("h3");
   title.style.cssText = `
-    color: #fff;
-    font-size: 16px;
+    color: #ffffff;
+    font-size: 20px;
     font-weight: 600;
     line-height: 1.3;
-    margin: 0 0 6px 0;
-    min-height: 42px;
+    margin: 0;
+    flex: 1;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   `;
   title.textContent = market.title || market.question || "Untitled Market";
-  card.appendChild(title);
+  header.appendChild(title);
 
-  if (market.description) {
-    const description = document.createElement("p");
-    description.style.cssText = `
-      color: #9ca3af;
-      font-size: 13px;
-      line-height: 1.4;
-      margin: 0 0 12px 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    `;
-    description.textContent = market.description;
-    card.appendChild(description);
-  }
-
-  const stats = document.createElement("div");
-  stats.style.cssText = `
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #2d3348;
-  `;
-
-  if (market.volume !== undefined || market.volume24hr !== undefined) {
-    const volume = market.volume24hr || market.volume || 0;
-    const volumeStat = createStat("24h Volume", formatCurrency(volume));
-    stats.appendChild(volumeStat);
-  }
-
-  if (market.liquidity !== undefined || market.liquidityNum !== undefined) {
-    const liquidity = market.liquidityNum || market.liquidity || 0;
-    const liquidityStat = createStat("Liquidity", formatCurrency(liquidity));
-    stats.appendChild(liquidityStat);
-  }
-
-  if (stats.children.length > 0) {
-    card.appendChild(stats);
-  }
+  card.appendChild(header);
 
   const marketsList = market.markets && market.markets.length > 0 ? market.markets : [market];
   
@@ -242,10 +168,10 @@ function createMarketCard(market, mainContainer) {
     multiMarketsContainer.style.cssText = `
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 16px;
       ${marketsList.length > 4 ? `
-        max-height: 280px;
+        max-height: 240px;
         overflow-y: auto;
         padding-right: 4px;
       ` : ''}
@@ -258,22 +184,41 @@ function createMarketCard(market, mainContainer) {
           width: 6px;
         }
         .multi-markets-scroll::-webkit-scrollbar-track {
-          background: #1a1f3a;
+          background: #2a2a2a;
           border-radius: 3px;
         }
         .multi-markets-scroll::-webkit-scrollbar-thumb {
-          background: #2d3348;
+          background: #3a3a3a;
           border-radius: 3px;
         }
         .multi-markets-scroll::-webkit-scrollbar-thumb:hover {
-          background: #4f46e5;
+          background: #4a4a4a;
         }
       `;
       document.head.appendChild(style);
       multiMarketsContainer.classList.add('multi-markets-scroll');
     }
 
-    marketsList.forEach((mk, idx) => {
+    const getPrice = (mk) => {
+      try {
+        if (mk.outcomePrices) {
+          const prices = typeof mk.outcomePrices === 'string'
+            ? JSON.parse(mk.outcomePrices)
+            : mk.outcomePrices;
+          const p = parseFloat(prices?.[0] ?? 0);
+          return isNaN(p) ? 0 : p;
+        }
+        if (mk.lastTradePrice !== undefined && mk.lastTradePrice !== null) {
+          const p = parseFloat(mk.lastTradePrice);
+          return isNaN(p) ? 0 : p;
+        }
+      } catch {}
+      return 0;
+    };
+
+    const sortedMarketsList = [...marketsList].sort((a, b) => getPrice(b) - getPrice(a));
+
+    sortedMarketsList.forEach((mk, idx) => {
       const mkBtn = createMultiMarketButton(mk, idx, market);
       multiMarketsContainer.appendChild(mkBtn);
     });
@@ -302,87 +247,148 @@ function createMarketCard(market, mainContainer) {
     }
 
     if (outcomes.length > 0) {
-      const outcomesContainer = document.createElement("div");
-      outcomesContainer.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 12px;
-      `;
+      // Binary market - show 2 buttons side by side with percentage in header
+      if (outcomes.length === 2) {
+        // Add percentage to header
+        const percentage = document.createElement("div");
+        percentage.style.cssText = `
+          color: #ffffff;
+          font-size: 32px;
+          font-weight: 700;
+          flex-shrink: 0;
+        `;
+        const price = outcomes[0].price || 0;
+        const prob = Math.round(price * 100);
+        percentage.textContent = `${prob}%`;
+        header.appendChild(percentage);
 
-      outcomes.forEach((outcome, idx) => {
-        const outcomeBtn = createOutcomeButton(outcome, idx, market);
-        outcomesContainer.appendChild(outcomeBtn);
-      });
+        // Binary buttons grid
+        const buttonsGrid = document.createElement("div");
+        buttonsGrid.style.cssText = `
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 16px;
+        `;
 
-      card.appendChild(outcomesContainer);
-    } else {
-      const viewButton = document.createElement("button");
-      viewButton.style.cssText = `
-        width: 100%;
-        background: rgba(99, 102, 241, 0.1);
-        border: 1px solid #4f46e5;
-        color: #818cf8;
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin-bottom: 12px;
-      `;
-      viewButton.textContent = "View Market";
-      viewButton.onmouseenter = () => {
-        viewButton.style.background = "rgba(99, 102, 241, 0.2)";
-      };
-      viewButton.onmouseleave = () => {
-        viewButton.style.background = "rgba(99, 102, 241, 0.1)";
-      };
-      card.appendChild(viewButton);
+        outcomes.forEach((outcome, idx) => {
+          const outcomeBtn = createOutcomeButton(outcome, idx, market);
+          buttonsGrid.appendChild(outcomeBtn);
+        });
+
+        card.appendChild(buttonsGrid);
+      } else {
+        // Multi-outcome market - show list of options sorted by percentage descending
+        const outcomesContainer = document.createElement("div");
+        outcomesContainer.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 16px;
+        `;
+
+        // Sort outcomes by price (percentage) in descending order
+        console.log('Before sort:', outcomes.map(o => ({ outcome: o.outcome, price: o.price })));
+        const sortedOutcomes = [...outcomes].sort((a, b) => {
+          const priceA = parseFloat(a.price) || 0;
+          const priceB = parseFloat(b.price) || 0;
+          return priceB - priceA;
+        });
+        console.log('After sort:', sortedOutcomes.map(o => ({ outcome: o.outcome, price: o.price })));
+
+        sortedOutcomes.forEach((outcome, idx) => {
+          const outcomeBtn = createOutcomeButton(outcome, idx, market);
+          outcomesContainer.appendChild(outcomeBtn);
+        });
+
+        card.appendChild(outcomesContainer);
+      }
     }
   }
 
-  // NEW: Add Analysis Button
+  // Footer with volume, analysis button, and platform logo
+  const footer = document.createElement("div");
+  footer.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+    gap: 8px;
+  `;
+
+  // Volume
+  const volume = market.volume24hr || market.volume || 0;
+  const volumeText = document.createElement("span");
+  volumeText.style.cssText = `
+    color: #9ca3af;
+    font-size: 12px;
+  `;
+  volumeText.textContent = formatVolume(volume);
+  footer.appendChild(volumeText);
+
+  // Right side container for button and logo
+  const rightContainer = document.createElement("div");
+  rightContainer.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+
+  // Analysis Button
   const analysisBtn = document.createElement("button");
   analysisBtn.style.cssText = `
-    width: 100%;
-    background: rgba(147, 51, 234, 0.1);
-    border: 1px solid #9333ea;
-    color: #c084fc;
-    padding: 10px 14px;
+    background: linear-gradient(135deg, #4169E1 0%, #5B7FED 100%);
+    border: none;
+    color: #ffffff;
+    padding: 8px 14px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(65, 105, 225, 0.25);
   `;
   analysisBtn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
     </svg>
-    <span>Analyze Market History</span>
+    <span>Market Analysis</span>
   `;
   
   analysisBtn.onmouseenter = () => {
-    analysisBtn.style.background = "rgba(147, 51, 234, 0.2)";
+    analysisBtn.style.background = "linear-gradient(135deg, #5B7FED 0%, #6A8EFF 100%)";
+    analysisBtn.style.boxShadow = "0 3px 8px rgba(65, 105, 225, 0.35)";
   };
   analysisBtn.onmouseleave = () => {
-    analysisBtn.style.background = "rgba(147, 51, 234, 0.1)";
+    analysisBtn.style.background = "linear-gradient(135deg, #4169E1 0%, #5B7FED 100%)";
+    analysisBtn.style.boxShadow = "0 2px 6px rgba(65, 105, 225, 0.25)";
   };
 
-analysisBtn.onclick = async (e) => {
-  e.stopPropagation();
-  // Get selected text from wherever you store it in your extension
-  // You'll need to pass this from your main function
-  const selectedText = window.lastSelectedText || market.title || "";
-  await showMarketAnalysis(market, mainContainer, selectedText);
-};
+  analysisBtn.onclick = async (e) => {
+    e.stopPropagation();
+    const selectedText = window.lastSelectedText || market.title || "";
+    await showMarketAnalysis(market, mainContainer, selectedText);
+  };
 
-  card.appendChild(analysisBtn);
+  rightContainer.appendChild(analysisBtn);
+
+  // Platform logo (Polymarket logo)
+  const platformLogo = document.createElement("img");
+  platformLogo.src = "/polymarket-logo.png";
+  platformLogo.style.cssText = `
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  `;
+  rightContainer.appendChild(platformLogo);
+
+  footer.appendChild(rightContainer);
+  card.appendChild(footer);
 
   return card;
 }
@@ -396,7 +402,7 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 10000;
     display: flex;
     align-items: center;
@@ -407,15 +413,16 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
 
   const modalContent = document.createElement("div");
   modalContent.style.cssText = `
-    background: #1a1f3a;
-    border: 1px solid #2d3348;
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 800px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 700px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   `;
 
   // Close button
@@ -423,53 +430,41 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
   closeBtn.innerHTML = "×";
   closeBtn.style.cssText = `
     position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid #ef4444;
-    color: #f87171;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    font-size: 24px;
+    top: 12px;
+    right: 12px;
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    color: #9ca3af;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
   `;
   closeBtn.onclick = () => modal.remove();
   closeBtn.onmouseenter = () => {
-    closeBtn.style.background = "rgba(239, 68, 68, 0.2)";
+    closeBtn.style.background = "#3a3a3a";
+    closeBtn.style.borderColor = "#4a4a4a";
   };
   closeBtn.onmouseleave = () => {
-    closeBtn.style.background = "rgba(239, 68, 68, 0.1)";
+    closeBtn.style.background = "#2a2a2a";
+    closeBtn.style.borderColor = "#3a3a3a";
   };
 
   // Title
   const title = document.createElement("h2");
   title.style.cssText = `
-    color: #fff;
-    font-size: 20px;
+    color: #e5e5e5;
+    font-size: 18px;
     font-weight: 600;
-    margin: 0 0 8px 0;
-    padding-right: 40px;
+    margin: 0 0 6px 0;
+    padding-right: 36px;
   `;
   title.textContent = "Analysis: " + (market.title || market.question || "Market");
-
-  // Show selected text context
-  const contextBox = document.createElement("div");
-  contextBox.style.cssText = `
-    background: rgba(99, 102, 241, 0.05);
-    border-left: 3px solid #6366f1;
-    padding: 12px;
-    margin-bottom: 16px;
-    border-radius: 4px;
-  `;
-  contextBox.innerHTML = `
-    <p style="margin: 0; color: #9ca3af; font-size: 12px; margin-bottom: 4px;">Selected Text:</p>
-    <p style="margin: 0; color: #e5e7eb; font-size: 13px; font-style: italic;">"${selectedText.substring(0, 200)}${selectedText.length > 200 ? '...' : ''}"</p>
-  `;
 
   // Loading state
   const loadingContainer = document.createElement("div");
@@ -478,12 +473,12 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
-    color: #9ca3af;
+    padding: 32px 20px;
+    color: #6b7280;
   `;
   loadingContainer.innerHTML = `
-    <div style="width: 40px; height: 40px; border: 3px solid #2d3348; border-top-color: #9333ea; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-    <p style="margin: 0; font-size: 14px;">Analyzing sources and trends...</p>
+    <div style="width: 32px; height: 32px; border: 2px solid #2a2a2a; border-top-color: #6b7280; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+    <p style="margin: 0; font-size: 13px;">Analyzing sources and trends...</p>
   `;
 
   const style = document.createElement('style');
@@ -496,7 +491,6 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
 
   modalContent.appendChild(closeBtn);
   modalContent.appendChild(title);
-  modalContent.appendChild(contextBox);
   modalContent.appendChild(loadingContainer);
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
@@ -519,57 +513,75 @@ async function showMarketAnalysis(market, mainContainer, selectedText) {
 function createAnalysisDisplay(analysis) {
   const container = document.createElement("div");
   container.style.cssText = `
-    color: #fff;
+    color: #e5e5e5;
   `;
 
   // Source Information Section
   if (analysis.sources && analysis.sources.length > 0) {
-    const sourceSection = document.createElement("div");
-    sourceSection.style.cssText = `
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid #10b981;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    `;
-    
-    let sourcesHTML = '<h3 style="color: #34d399; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">📰 Key Sources</h3>';
-    
-    analysis.sources.forEach((source, idx) => {
-      sourcesHTML += `
-        <div style="margin-bottom: ${idx < analysis.sources.length - 1 ? '12px' : '0'}; padding-bottom: ${idx < analysis.sources.length - 1 ? '12px' : '0'}; border-bottom: ${idx < analysis.sources.length - 1 ? '1px solid rgba(16, 185, 129, 0.2)' : 'none'};">
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-            <strong style="color: #e5e7eb; font-size: 14px;">${source.title}</strong>
-            <span style="color: #9ca3af; font-size: 12px; white-space: nowrap; margin-left: 12px;">${source.date}</span>
-          </div>
-          <p style="margin: 4px 0; color: #d1d5db; font-size: 13px; line-height: 1.4;">${source.description}</p>
-          <a href="${source.url}" target="_blank" style="color: #34d399; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
-            Read more →
-          </a>
-        </div>
-      `;
+    // Filter sources to only show those after September 9, 2025
+    const cutoffDate = new Date('2025-09-09');
+    const filteredSources = analysis.sources.filter(source => {
+      if (!source.date || source.date === 'N/A' || source.date.toLowerCase() === 'recent') {
+        return true; // Keep sources without specific dates
+      }
+      try {
+        const sourceDate = new Date(source.date);
+        return sourceDate >= cutoffDate;
+      } catch (e) {
+        return true; // Keep sources with invalid dates
+      }
     });
-    
-    sourceSection.innerHTML = sourcesHTML;
-    container.appendChild(sourceSection);
+
+    if (filteredSources.length === 0) {
+      // Skip this section if no sources pass the filter
+    } else {
+      const sourceSection = document.createElement("div");
+      sourceSection.style.cssText = `
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        border-radius: 6px;
+        padding: 14px;
+        margin-bottom: 16px;
+      `;
+      
+      let sourcesHTML = '<h3 style="color: #e5e5e5; font-size: 16px; font-weight: 700; margin: 0 0 12px 0;">Relevant Sources</h3>';
+      
+      filteredSources.forEach((source, idx) => {
+        sourcesHTML += `
+          <div style="margin-bottom: ${idx < filteredSources.length - 1 ? '10px' : '0'}; padding-bottom: ${idx < filteredSources.length - 1 ? '10px' : '0'}; border-bottom: ${idx < filteredSources.length - 1 ? '1px solid #3a3a3a' : 'none'};">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+              <strong style="color: #e5e5e5; font-size: 13px;">${source.title}</strong>
+              <span style="color: #9ca3af; font-size: 11px; white-space: nowrap; margin-left: 10px;">${source.date}</span>
+            </div>
+            <p style="margin: 4px 0; color: #d0d0d0; font-size: 12px; line-height: 1.4;">${source.description}</p>
+            <a href="${source.url}" target="_blank" style="color: #e5e5e5; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; border-bottom: 1px solid #3a3a3a;">
+              Read more →
+            </a>
+          </div>
+        `;
+      });
+      
+      sourceSection.innerHTML = sourcesHTML;
+      container.appendChild(sourceSection);
+    }
   }
 
   // Key Insights Section
   if (analysis.insights && analysis.insights.length > 0) {
     const insightsSection = document.createElement("div");
     insightsSection.style.cssText = `
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid #6366f1;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
     `;
     
-    let insightsHTML = '<h3 style="color: #818cf8; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">📊 Key Insights</h3>';
-    insightsHTML += '<ul style="margin: 0; padding-left: 20px; color: #e5e7eb; font-size: 14px; line-height: 1.8;">';
+    let insightsHTML = '<h3 style="color: #e5e5e5; font-size: 16px; font-weight: 700; margin: 0 0 12px 0;">Key Insights</h3>';
+    insightsHTML += '<ul style="margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 13px; line-height: 1.6;">';
     
     analysis.insights.forEach(insight => {
-      insightsHTML += `<li style="margin-bottom: 8px;">${insight}</li>`;
+      insightsHTML += `<li style="margin-bottom: 6px;">${insight}</li>`;
     });
     
     insightsHTML += '</ul>';
@@ -581,23 +593,23 @@ function createAnalysisDisplay(analysis) {
   if (analysis.prediction) {
     const predictionSection = document.createElement("div");
     predictionSection.style.cssText = `
-      background: rgba(147, 51, 234, 0.1);
-      border: 1px solid #9333ea;
-      border-radius: 12px;
-      padding: 16px;
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      padding: 14px;
     `;
     
     predictionSection.innerHTML = `
-      <h3 style="color: #c084fc; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">🤖 AI Prediction</h3>
-      <div style="color: #e5e7eb; font-size: 14px; line-height: 1.6;">
-        <div style="margin-bottom: 12px;">
-          <strong style="color: #c084fc;">Outcome:</strong> ${analysis.prediction.outcome}
+      <h3 style="color: #e5e5e5; font-size: 16px; font-weight: 700; margin: 0 0 12px 0;">AI Prediction</h3>
+      <div style="color: #d0d0d0; font-size: 13px; line-height: 1.5;">
+        <div style="margin-bottom: 8px;">
+          <strong style="color: #e5e5e5;">Outcome:</strong> ${analysis.prediction.outcome}
         </div>
-        <div style="margin-bottom: 12px;">
-          <strong style="color: #c084fc;">Confidence:</strong> ${analysis.prediction.confidence}%
+        <div style="margin-bottom: 8px;">
+          <strong style="color: #e5e5e5;">Confidence:</strong> ${analysis.prediction.confidence}%
         </div>
         <div>
-          <strong style="color: #c084fc;">Reasoning:</strong> ${analysis.prediction.reasoning}
+          <strong style="color: #e5e5e5;">Reasoning:</strong> ${analysis.prediction.reasoning}
         </div>
       </div>
     `;
@@ -612,6 +624,63 @@ async function fetchMarketAnalysis(market, selectedText) {
   const MODEL = "gemini-2.5-flash-lite";
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
+  // Determine market type and format options
+  const marketsList = market.markets || [market];
+  const marketData = marketsList[0];
+  
+  let marketType = "unknown";
+  let formattedOptions = "";
+  
+  if (marketsList.length > 1) {
+    // Multiple related markets (e.g., "Which team will finish top 4?")
+    marketType = "multi-market";
+    formattedOptions = marketsList.map((mk, idx) => {
+      let price = 0;
+      if (mk.outcomePrices) {
+        try {
+          const prices = typeof mk.outcomePrices === 'string' ? JSON.parse(mk.outcomePrices) : mk.outcomePrices;
+          price = parseFloat(prices[0] || 0);
+        } catch (e) {}
+      }
+      const prob = Math.round(price * 100);
+      return `${idx + 1}. ${mk.question} (Currently: ${prob}% YES)`;
+    }).join('\n');
+  } else if (marketData.outcomes && marketData.outcomePrices) {
+    try {
+      const outcomeNames = typeof marketData.outcomes === 'string' 
+        ? JSON.parse(marketData.outcomes) 
+        : marketData.outcomes;
+      const outcomePrices = typeof marketData.outcomePrices === 'string'
+        ? JSON.parse(marketData.outcomePrices)
+        : marketData.outcomePrices;
+      
+      if (outcomeNames && outcomeNames.length === 2 && 
+          outcomeNames.some(n => n.toLowerCase().includes('yes')) &&
+          outcomeNames.some(n => n.toLowerCase().includes('no'))) {
+        // Binary Yes/No market
+        marketType = "binary";
+        formattedOptions = "Yes or No";
+      } else if (outcomeNames && outcomeNames.length > 2) {
+        // Multiple choice market
+        marketType = "multiple-choice";
+        formattedOptions = outcomeNames.map((name, idx) => {
+          const price = parseFloat(outcomePrices[idx] || 0);
+          const prob = Math.round(price * 100);
+          return `${idx + 1}. ${name} (Currently: ${prob}%)`;
+        }).join('\n');
+      } else {
+        marketType = "binary";
+        formattedOptions = outcomeNames ? outcomeNames.join(' or ') : "Yes or No";
+      }
+    } catch (e) {
+      marketType = "binary";
+      formattedOptions = "Yes or No";
+    }
+  } else {
+    marketType = "binary";
+    formattedOptions = "Yes or No";
+  }
+
   const prompt = `
 You are analyzing a prediction market in relation to some selected text. 
 
@@ -622,11 +691,20 @@ Market Information:
 Title: ${market.title || market.question}
 Description: ${market.description || 'N/A'}
 Category: ${market.category || 'N/A'}
+Market Type: ${marketType}
+
+Available Options:
+${formattedOptions}
 
 Your task:
-1. Find 2-3 key news sources that first reported or are most relevant to the SELECTED TEXT (not the market itself)
+1. Find 2-3 key news sources that first reported or are most relevant to the SELECTED TEXT
 2. Provide 3-5 bullet-point key insights about how this topic has evolved
-3. Give a brief AI prediction for the market outcome based on current information
+3. Give a prediction for the most likely outcome
+
+PREDICTION RULES BASED ON MARKET TYPE:
+- If market type is "binary": Predict "Yes" or "No" 
+- If market type is "multiple-choice": Predict the specific option name from the list above
+- If market type is "multi-market": Predict which specific question/option is most likely YES, format as "[Question text] (YES)" or "[Question text] (NO)"
 
 Respond ONLY with valid JSON in this exact format:
 {
@@ -644,12 +722,13 @@ Respond ONLY with valid JSON in this exact format:
     "Brief insight point 3"
   ],
   "prediction": {
-    "outcome": "Most likely outcome (Yes/No or description)",
+    "outcome": "Your prediction following the rules above",
     "confidence": 75,
-    "reasoning": "One sentence explaining why"
+    "reasoning": "One sentence explaining why this outcome is most likely"
   }
 }
 
+CRITICAL: Follow the prediction format rules strictly based on the market type.
 Keep everything concise. Each insight should be ONE sentence max. Sources should be real and verifiable.
 `;
 
@@ -691,8 +770,8 @@ function createStat(label, value) {
     flex: 1;
   `;
   stat.innerHTML = `
-    <div style="color: #6b7280; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">${label}</div>
-    <div style="color: #fff; font-size: 13px; font-weight: 600;">${value}</div>
+    <div style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; line-height: 1;">${label}</div>
+    <div style="color: #ffffff; font-size: 13px; font-weight: 600; line-height: 1;">${value}</div>
   `;
   return stat;
 }
@@ -705,50 +784,39 @@ function createOutcomeButton(outcome, idx, market) {
   const isYes = outcomeName.toLowerCase().includes("yes");
   const isNo = outcomeName.toLowerCase().includes("no");
   
-  let bgColor, borderColor, textColor, hoverBg;
+  let bgColor, textColor, hoverBg;
   if (isYes) {
-    bgColor = "rgba(16, 185, 129, 0.1)";
-    borderColor = "#10b981";
-    textColor = "#34d399";
-    hoverBg = "rgba(16, 185, 129, 0.2)";
+    bgColor = "#3d7555";
+    textColor = "#7ed39d";
+    hoverBg = "#4a8a65";
   } else if (isNo) {
-    bgColor = "rgba(239, 68, 68, 0.1)";
-    borderColor = "#ef4444";
-    textColor = "#f87171";
-    hoverBg = "rgba(239, 68, 68, 0.2)";
+    bgColor = "#8b4d4d";
+    textColor = "#e89090";
+    hoverBg = "#9d5757";
   } else {
-    bgColor = "rgba(99, 102, 241, 0.1)";
-    borderColor = "#6366f1";
-    textColor = "#818cf8";
-    hoverBg = "rgba(99, 102, 241, 0.2)";
+    bgColor = "#3d7555";
+    textColor = "#7ed39d";
+    hoverBg = "#4a8a65";
   }
 
   const button = document.createElement("button");
   button.style.cssText = `
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background: ${bgColor};
-    border: 1px solid ${borderColor};
-    padding: 10px 14px;
+    border: none;
+    padding: 16px 14px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     width: 100%;
+    height: 52px;
+    font-weight: 600;
   `;
 
-  let displayProb;
-  if (probability <= 0) {
-    displayProb = "<1%";
-  } else if (probability >= 100) {
-    displayProb = ">99%";
-  } else {
-    displayProb = `${probability}%`;
-  }
-
   button.innerHTML = `
-    <span style="color: #fff; font-size: 14px; font-weight: 500;">${outcomeName}</span>
-    <span style="color: ${textColor}; font-size: 15px; font-weight: 700;">${displayProb}</span>
+    <span style="color: ${textColor}; font-size: 16px; font-weight: 600;">${outcomeName}</span>
   `;
 
   button.onmouseenter = () => {
@@ -796,69 +864,120 @@ function createMultiMarketButton(mk, idx, parentMarket) {
     displayProb = `${probability}%`;
   }
 
-  let bgColor, borderColor, textColor, hoverBg;
-  if (probability >= 50) {
-    bgColor = "rgba(16, 185, 129, 0.1)";
-    borderColor = "#10b981";
-    textColor = "#34d399";
-    hoverBg = "rgba(16, 185, 129, 0.2)";
-  } else {
-    bgColor = "rgba(239, 68, 68, 0.1)";
-    borderColor = "#ef4444";
-    textColor = "#f87171";
-    hoverBg = "rgba(239, 68, 68, 0.2)";
-  }
-
-  const button = document.createElement("button");
-  button.style.cssText = `
+  // Create row container
+  const row = document.createElement("div");
+  row.style.cssText = `
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: ${bgColor};
-    border: 1px solid ${borderColor};
-    padding: 10px 14px;
-    border-radius: 8px;
+    justify-content: space-between;
+    gap: 12px;
+  `;
+
+  // Option text
+  const optionText = document.createElement("span");
+  optionText.style.cssText = `
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 400;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  `;
+  optionText.textContent = mk.question;
+
+  // Percentage
+  const percentageText = document.createElement("span");
+  percentageText.style.cssText = `
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+    min-width: 55px;
+    text-align: right;
+  `;
+  percentageText.textContent = displayProb;
+
+  // Yes button
+  const yesBtn = document.createElement("button");
+  yesBtn.style.cssText = `
+    background: #3d7555;
+    border: none;
+    color: #7ed39d;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
   `;
-
-  button.innerHTML = `
-    <span style="color: #fff; font-size: 14px; font-weight: 500; max-width: 75%; text-align: left;">${mk.question}</span>
-    <span style="color: ${textColor}; font-size: 15px; font-weight: 700;">${displayProb}</span>
-  `;
-
-  button.onmouseenter = () => {
-    button.style.background = hoverBg;
+  yesBtn.textContent = "Yes";
+  yesBtn.onmouseenter = () => {
+    yesBtn.style.background = "#4a8a65";
   };
-  button.onmouseleave = () => {
-    button.style.background = bgColor;
+  yesBtn.onmouseleave = () => {
+    yesBtn.style.background = "#3d7555";
   };
-
-  button.onclick = () => {
+  yesBtn.onclick = (e) => {
+    e.stopPropagation();
     const slug = parentMarket.slug || parentMarket.ticker;
     const url = slug ? `https://polymarket.com/event/${slug}` : null;
     if (url) {
       window.open(url, "_blank");
     }
-    console.log("Opening parent market:", parentMarket);
   };
 
-  return button;
+  // No button
+  const noBtn = document.createElement("button");
+  noBtn.style.cssText = `
+    background: #8b4d4d;
+    border: none;
+    color: #e89090;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  `;
+  noBtn.textContent = "No";
+  noBtn.onmouseenter = () => {
+    noBtn.style.background = "#9d5757";
+  };
+  noBtn.onmouseleave = () => {
+    noBtn.style.background = "#8b4d4d";
+  };
+  noBtn.onclick = (e) => {
+    e.stopPropagation();
+    const slug = parentMarket.slug || parentMarket.ticker;
+    const url = slug ? `https://polymarket.com/event/${slug}` : null;
+    if (url) {
+      window.open(url, "_blank");
+    }
+  };
+
+  row.appendChild(optionText);
+  row.appendChild(percentageText);
+  row.appendChild(yesBtn);
+  row.appendChild(noBtn);
+
+  return row;
 }
 
-function formatCurrency(amount) {
+function formatVolume(amount) {
   if (!amount && amount !== 0) return "N/A";
   
   const num = parseFloat(amount);
   if (isNaN(num)) return "N/A";
   
   if (num >= 1000000) {
-    return "$" + (num / 1000000).toFixed(1) + "M";
+    return "$" + (num / 1000000).toFixed(0) + "m Vol.";
   } else if (num >= 1000) {
-    return "$" + (num / 1000).toFixed(1) + "K";
+    return "$" + (num / 1000).toFixed(0) + "k Vol.";
   } else {
-    return "$" + num.toFixed(0);
+    return "$" + num.toFixed(0) + " Vol.";
   }
 }
 
@@ -872,7 +991,7 @@ export async function fetchMarkets(keyWords, progressCallback, limit = 10) {
         markets.push(...data.events);
       }
       progressCallback?.(
-        `Fetched ${data?.events?.length || 0} markets for "${keyWord}"`
+        `Tsured ${data?.events?.length || 0} markets for "${keyWord}"`
       );
     } catch (error) {
       console.error(error);
@@ -903,19 +1022,19 @@ A text snippet (which may be in any language). It can describe news, events, opi
 
 2. **Generate relevant Polymarket search keywords.**
    - Focus on topics that are likely to have prediction markets or could plausibly have them (e.g., elections, price movements, policy outcomes, sports results, crypto events, geopolitical risks, major company announcements).
-   - Include synonyms and event formulations:  
-     e.g. "Ethereum ETF approval", "US presidential election", "Bitcoin price above 100k", "Biden approval rating".
-   - Prefer concise, market-style keyword phrases (2–6 words each).
+   - CRITICAL: Each keyword MUST be 1-2 WORDS ONLY. No more than 2 words per search string.
+   - Examples of valid keywords: "Bitcoin", "Trump", "Ethereum ETF", "US election", "Fed rate", "Arsenal", "Liverpool"
+   - Examples of INVALID keywords: "US presidential election 2024", "Bitcoin price above 100k" (too long)
 
 3. **Be smart with context and reasoning.**
-   - If the snippet mentions two politicians → include their countries, possible elections, and related geopolitical events.  
-   - If it's about a company → include keywords about its stock, regulation, and industry trends.  
-   - If it's about crypto → include keywords like "price", "ETF approval", "adoption", "network upgrade".  
+   - If the snippet mentions two politicians → include their names, countries, elections.
+   - If it's about a company → include the company name, its stock ticker if known.
+   - If it's about crypto → include cryptocurrency names, "ETF", "price", "adoption".
    - If the snippet is general → infer related global or economic prediction themes.
 
 4. **Output format:**
-   Return a JSON array of 5–15 short keyword phrases (strings) that would be good Polymarket search queries.
-    MAX 10 
+   Return a JSON array of 5–10 short keyword phrases (1-2 words each) that would be good Polymarket search queries.
+   MAX 10 keywords total.
 
 ---
 
@@ -926,17 +1045,17 @@ A text snippet (which may be in any language). It can describe news, events, opi
 
 **Output:**
 [
-  "US-China relations",
-  "semiconductor export restrictions",
-  "Taiwan conflict",
-  "chip industry outlook",
-  "China economic slowdown",
-  "US tech policy"
+  "US-China",
+  "semiconductor",
+  "Taiwan",
+  "chip industry",
+  "China economy",
+  "US tech"
 ]
 
 ---
 
-Now, analyze the following snippet and ONLY return your keyword list MAKE SURE YOU ONLY RETURN THE LIST:
+Now, analyze the following snippet and ONLY return your keyword list. REMEMBER: 1-2 WORDS PER KEYWORD ONLY:
 ${text}
 `;
 

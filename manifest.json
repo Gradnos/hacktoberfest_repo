@@ -1,9 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Hello World Side Panel",
+  "name": "Tsuri",
   "version": "1.0",
-  "description": "Displays a side panel with Hello World on every page",
+  "description": "AI-powered prediction market analysis for selected text",
   "permissions": ["sidePanel", "tabs", "storage"],
+  "icons": {
+    "16": "tsuri-icon.png",
+    "48": "tsuri-icon.png",
+    "128": "tsuri-icon.png"
+  },
+  "web_accessible_resources": [{
+    "resources": ["tsuri-icon.png"],
+    "matches": ["<all_urls>"]
+  }],
   "side_panel": {
     "default_path": "sidepanel.html"
   },
