@@ -24,7 +24,13 @@ export async function main(str, progressCallback) {
   progressCallback?.("Evaluating markets...");
   const validMarkets = [];
 
-  const uniqueMarkets = [...new Set(markets)];
+  const uniqueMarkets = Object.values(
+    markets.reduce((acc, market) => {
+      const key = market.ticker || market.id;
+      if (!acc[key]) acc[key] = market;
+      return acc;
+    }, {})
+  );
   const scores = await isvalidBulk(uniqueMarkets, str);
 
   uniqueMarkets.forEach((market, i) => {
@@ -575,11 +581,54 @@ export async function getkeywords(text) {
 
   try {
     const prompt = `
-You are a helpful assistant. Extract 10 to 15 concise keywords or short phrases that are most relevant
-to the following text, for searching prediction markets. Each keyword or phrase should be 1 to 4 words,
-and respond as a JSON array of strings, like: ["phrase1", "phrase2", "phrase3"].
+You are an expert in prediction markets and event discovery.
+Your goal is to generate high-quality search keywords for finding relevant markets on Polymarket based on a given text snippet.
 
-Text:
+---
+
+### INPUT:
+A text snippet (which may be in any language). It can describe news, events, opinions, political situations, sports, cryptocurrencies, tech, etc.
+
+### TASK:
+1. **Understand the meaning of the text.**
+   - Identify all key topics, entities, people, organizations, places, currencies, technologies, or events mentioned or implied.
+   - Translate the text to English if it’s in another language.
+
+2. **Generate relevant Polymarket search keywords.**
+   - Focus on topics that are likely to have prediction markets or could plausibly have them (e.g., elections, price movements, policy outcomes, sports results, crypto events, geopolitical risks, major company announcements).
+   - Include synonyms and event formulations:  
+     e.g. “Ethereum ETF approval”, “US presidential election”, “Bitcoin price above 100k”, “Biden approval rating”.
+   - Prefer concise, market-style keyword phrases (2–6 words each).
+
+3. **Be smart with context and reasoning.**
+   - If the snippet mentions two politicians → include their countries, possible elections, and related geopolitical events.  
+   - If it’s about a company → include keywords about its stock, regulation, and industry trends.  
+   - If it’s about crypto → include keywords like “price”, “ETF approval”, “adoption”, “network upgrade”.  
+   - If the snippet is general → infer related global or economic prediction themes.
+
+4. **Output format:**
+   Return a JSON array of 5–15 short keyword phrases (strings) that would be good Polymarket search queries.
+    MAX 10 
+---
+
+### EXAMPLE:
+
+**Input:**
+“Recent reports suggest tension between the US and China over semiconductor exports.”
+
+**Output:**
+[
+  "US-China relations",
+  "semiconductor export restrictions",
+  "Taiwan conflict",
+  "chip industry outlook",
+  "China economic slowdown",
+  "US tech policy"
+]
+
+---
+
+Now, analyze the following snippet and ONLY return your keyword list MAKE SURE YOU ONLY RETURN THE LIST:
 ${text}
 `;
 
