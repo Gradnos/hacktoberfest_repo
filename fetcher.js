@@ -884,7 +884,7 @@ function createMultiMarketButton(mk, idx, parentMarket) {
     text-overflow: ellipsis;
     white-space: nowrap;
   `;
-  optionText.textContent = mk.question;
+  optionText.textContent = mk.groupItemTitle|| mk.question ;
 
   // Percentage
   const percentageText = document.createElement("span");
