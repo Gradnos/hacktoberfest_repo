@@ -24,7 +24,13 @@ export async function main(str, progressCallback) {
   progressCallback?.("Evaluating markets...");
   const validMarkets = [];
 
-  const uniqueMarkets = [...new Set(markets)];
+  const uniqueMarkets = Object.values(
+    markets.reduce((acc, market) => {
+      const key = market.ticker || market.id;
+      if (!acc[key]) acc[key] = market;
+      return acc;
+    }, {})
+  );
   const scores = await isvalidBulk(uniqueMarkets, str);
 
   uniqueMarkets.forEach((market, i) => {
