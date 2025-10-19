@@ -10,10 +10,11 @@ export async function main(str, progressCallback) {
     progressCallback?.("(no text selected)");
     return [];
   }
+   window.lastSelectedText = str;
 
   // Step 1: Generating keywords
   progressCallback?.("Generating keywords...");
-  const keyWords = await getkeywords(str); // await now
+  const keyWords = await getkeywords(str);
   progressCallback?.(`Keywords: ${keyWords.join(", ")}`);
   console.log("keyWords: --------", keyWords);
   // Step 2: Fetching markets
@@ -35,7 +36,6 @@ export async function main(str, progressCallback) {
 
   uniqueMarkets.forEach((market, i) => {
     if (scores[i] >= 60) {
-      // threshold for "valid"
       validMarkets.push({ ...market, score: scores[i] });
     }
   });
@@ -46,12 +46,6 @@ export async function main(str, progressCallback) {
   console.log("valid markets:", markets);
   return markets;
 }
-// Enhanced ShowMarkets function with Polymarket-style UI
-// Enhanced ShowMarkets function with Polymarket-style UI
-// COMPLETE FILE - Replace your ShowMarkets function and add helper functions
-
-// Enhanced ShowMarkets function with Polymarket-style UI
-// COMPLETE FILE - Replace your ShowMarkets function and add helper functions
 
 export function ShowMarkets(markets, container) {
   container.textContent = "";
@@ -75,7 +69,6 @@ export function ShowMarkets(markets, container) {
     return;
   }
 
-  // Create header
   const header = document.createElement("div");
   header.style.cssText = `
     margin-bottom: 24px;
@@ -87,7 +80,6 @@ export function ShowMarkets(markets, container) {
   `;
   container.appendChild(header);
 
-  // Create grid container
   const grid = document.createElement("div");
   grid.style.cssText = `
     display: grid;
@@ -97,14 +89,14 @@ export function ShowMarkets(markets, container) {
   `;
 
   markets.forEach((market) => {
-    const card = createMarketCard(market);
+    const card = createMarketCard(market, container);
     grid.appendChild(card);
   });
 
   container.appendChild(grid);
 }
 
-function createMarketCard(market) {
+function createMarketCard(market, mainContainer) {
   const card = document.createElement("div");
   card.style.cssText = `
     background: #1a1f3a;
@@ -117,7 +109,6 @@ function createMarketCard(market) {
     overflow: hidden;
   `;
 
-  // Hover effect
   card.onmouseenter = () => {
     card.style.borderColor = "#4f46e5";
     card.style.transform = "translateY(-2px)";
@@ -129,7 +120,6 @@ function createMarketCard(market) {
     card.style.boxShadow = "none";
   };
 
-  // Add market image if available (small corner image)
   if (market.image || market.icon) {
     const imageContainer = document.createElement("div");
     imageContainer.style.cssText = `
@@ -159,7 +149,6 @@ function createMarketCard(market) {
     card.appendChild(imageContainer);
   }
 
-  // Category/tags
   const tags = market.tags || [];
   if (tags.length > 0) {
     const tagsContainer = document.createElement("div");
@@ -170,7 +159,6 @@ function createMarketCard(market) {
       flex-wrap: wrap;
     `;
     
-    // Show first 2 tags
     tags.slice(0, 2).forEach(tag => {
       const tagBadge = document.createElement("div");
       tagBadge.style.cssText = `
@@ -189,7 +177,6 @@ function createMarketCard(market) {
     card.appendChild(tagsContainer);
   }
 
-  // Market question/title
   const title = document.createElement("h3");
   title.style.cssText = `
     color: #fff;
@@ -206,7 +193,6 @@ function createMarketCard(market) {
   title.textContent = market.title || market.question || "Untitled Market";
   card.appendChild(title);
 
-  // Description
   if (market.description) {
     const description = document.createElement("p");
     description.style.cssText = `
@@ -223,7 +209,6 @@ function createMarketCard(market) {
     card.appendChild(description);
   }
 
-  // Market stats (volume, liquidity, etc.)
   const stats = document.createElement("div");
   stats.style.cssText = `
     display: grid;
@@ -234,14 +219,12 @@ function createMarketCard(market) {
     border-bottom: 1px solid #2d3348;
   `;
 
-  // Volume
   if (market.volume !== undefined || market.volume24hr !== undefined) {
     const volume = market.volume24hr || market.volume || 0;
     const volumeStat = createStat("24h Volume", formatCurrency(volume));
     stats.appendChild(volumeStat);
   }
 
-  // Liquidity
   if (market.liquidity !== undefined || market.liquidityNum !== undefined) {
     const liquidity = market.liquidityNum || market.liquidity || 0;
     const liquidityStat = createStat("Liquidity", formatCurrency(liquidity));
@@ -252,16 +235,15 @@ function createMarketCard(market) {
     card.appendChild(stats);
   }
 
-  // Market outcomes - check markets array first
   const marketsList = market.markets && market.markets.length > 0 ? market.markets : [market];
   
-  // If there are multiple related markets (like different dates), show them all
   if (marketsList.length > 1) {
     const multiMarketsContainer = document.createElement("div");
     multiMarketsContainer.style.cssText = `
       display: flex;
       flex-direction: column;
       gap: 6px;
+      margin-bottom: 12px;
       ${marketsList.length > 4 ? `
         max-height: 280px;
         overflow-y: auto;
@@ -269,7 +251,6 @@ function createMarketCard(market) {
       ` : ''}
     `;
 
-    // Custom scrollbar styling for the container
     if (marketsList.length > 4) {
       const style = document.createElement('style');
       style.textContent = `
@@ -298,73 +279,410 @@ function createMarketCard(market) {
     });
 
     card.appendChild(multiMarketsContainer);
-    return card;
-  }
+  } else {
+    const marketData = marketsList[0];
+    
+    let outcomes = [];
+    if (marketData.outcomes && marketData.outcomePrices) {
+      try {
+        const outcomeNames = typeof marketData.outcomes === 'string' 
+          ? JSON.parse(marketData.outcomes) 
+          : marketData.outcomes;
+        const outcomePrices = typeof marketData.outcomePrices === 'string'
+          ? JSON.parse(marketData.outcomePrices)
+          : marketData.outcomePrices;
+        
+        outcomes = outcomeNames.map((name, idx) => ({
+          outcome: name,
+          price: parseFloat(outcomePrices[idx] || 0)
+        }));
+      } catch (e) {
+        console.error("Error parsing outcomes:", e);
+      }
+    }
 
-  // Single market - show yes/no outcomes
-  const marketData = marketsList[0];
-  
-  // Parse outcomes from the market data
-  let outcomes = [];
-  if (marketData.outcomes && marketData.outcomePrices) {
-    try {
-      const outcomeNames = typeof marketData.outcomes === 'string' 
-        ? JSON.parse(marketData.outcomes) 
-        : marketData.outcomes;
-      const outcomePrices = typeof marketData.outcomePrices === 'string'
-        ? JSON.parse(marketData.outcomePrices)
-        : marketData.outcomePrices;
-      
-      outcomes = outcomeNames.map((name, idx) => ({
-        outcome: name,
-        price: parseFloat(outcomePrices[idx] || 0)
-      }));
-    } catch (e) {
-      console.error("Error parsing outcomes:", e);
+    if (outcomes.length > 0) {
+      const outcomesContainer = document.createElement("div");
+      outcomesContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+      `;
+
+      outcomes.forEach((outcome, idx) => {
+        const outcomeBtn = createOutcomeButton(outcome, idx, market);
+        outcomesContainer.appendChild(outcomeBtn);
+      });
+
+      card.appendChild(outcomesContainer);
+    } else {
+      const viewButton = document.createElement("button");
+      viewButton.style.cssText = `
+        width: 100%;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid #4f46e5;
+        color: #818cf8;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 12px;
+      `;
+      viewButton.textContent = "View Market";
+      viewButton.onmouseenter = () => {
+        viewButton.style.background = "rgba(99, 102, 241, 0.2)";
+      };
+      viewButton.onmouseleave = () => {
+        viewButton.style.background = "rgba(99, 102, 241, 0.1)";
+      };
+      card.appendChild(viewButton);
     }
   }
 
-  if (outcomes.length > 0) {
-    const outcomesContainer = document.createElement("div");
-    outcomesContainer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    `;
+  // NEW: Add Analysis Button
+  const analysisBtn = document.createElement("button");
+  analysisBtn.style.cssText = `
+    width: 100%;
+    background: rgba(147, 51, 234, 0.1);
+    border: 1px solid #9333ea;
+    color: #c084fc;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  `;
+  analysisBtn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    <span>Analyze Market History</span>
+  `;
+  
+  analysisBtn.onmouseenter = () => {
+    analysisBtn.style.background = "rgba(147, 51, 234, 0.2)";
+  };
+  analysisBtn.onmouseleave = () => {
+    analysisBtn.style.background = "rgba(147, 51, 234, 0.1)";
+  };
 
-    outcomes.forEach((outcome, idx) => {
-      const outcomeBtn = createOutcomeButton(outcome, idx, market);
-      outcomesContainer.appendChild(outcomeBtn);
+analysisBtn.onclick = async (e) => {
+  e.stopPropagation();
+  // Get selected text from wherever you store it in your extension
+  // You'll need to pass this from your main function
+  const selectedText = window.lastSelectedText || market.title || "";
+  await showMarketAnalysis(market, mainContainer, selectedText);
+};
+
+  card.appendChild(analysisBtn);
+
+  return card;
+}
+
+async function showMarketAnalysis(market, mainContainer, selectedText) {
+  // Create modal overlay
+  const modal = document.createElement("div");
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  `;
+
+  const modalContent = document.createElement("div");
+  modalContent.style.cssText = `
+    background: #1a1f3a;
+    border: 1px solid #2d3348;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  `;
+
+  // Close button
+  const closeBtn = document.createElement("button");
+  closeBtn.innerHTML = "×";
+  closeBtn.style.cssText = `
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    color: #f87171;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  `;
+  closeBtn.onclick = () => modal.remove();
+  closeBtn.onmouseenter = () => {
+    closeBtn.style.background = "rgba(239, 68, 68, 0.2)";
+  };
+  closeBtn.onmouseleave = () => {
+    closeBtn.style.background = "rgba(239, 68, 68, 0.1)";
+  };
+
+  // Title
+  const title = document.createElement("h2");
+  title.style.cssText = `
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    padding-right: 40px;
+  `;
+  title.textContent = "Analysis: " + (market.title || market.question || "Market");
+
+  // Show selected text context
+  const contextBox = document.createElement("div");
+  contextBox.style.cssText = `
+    background: rgba(99, 102, 241, 0.05);
+    border-left: 3px solid #6366f1;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+  `;
+  contextBox.innerHTML = `
+    <p style="margin: 0; color: #9ca3af; font-size: 12px; margin-bottom: 4px;">Selected Text:</p>
+    <p style="margin: 0; color: #e5e7eb; font-size: 13px; font-style: italic;">"${selectedText.substring(0, 200)}${selectedText.length > 200 ? '...' : ''}"</p>
+  `;
+
+  // Loading state
+  const loadingContainer = document.createElement("div");
+  loadingContainer.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+  `;
+  loadingContainer.innerHTML = `
+    <div style="width: 40px; height: 40px; border: 3px solid #2d3348; border-top-color: #9333ea; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+    <p style="margin: 0; font-size: 14px;">Analyzing sources and trends...</p>
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  modalContent.appendChild(closeBtn);
+  modalContent.appendChild(title);
+  modalContent.appendChild(contextBox);
+  modalContent.appendChild(loadingContainer);
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  // Fetch analysis
+  try {
+    const analysis = await fetchMarketAnalysis(market, selectedText);
+    loadingContainer.remove();
+    
+    // Display analysis
+    const analysisContent = createAnalysisDisplay(analysis);
+    modalContent.appendChild(analysisContent);
+  } catch (error) {
+    loadingContainer.innerHTML = `
+      <p style="color: #ef4444; margin: 0;">Error: ${error.message}</p>
+    `;
+  }
+}
+
+function createAnalysisDisplay(analysis) {
+  const container = document.createElement("div");
+  container.style.cssText = `
+    color: #fff;
+  `;
+
+  // Source Information Section
+  if (analysis.sources && analysis.sources.length > 0) {
+    const sourceSection = document.createElement("div");
+    sourceSection.style.cssText = `
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid #10b981;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    `;
+    
+    let sourcesHTML = '<h3 style="color: #34d399; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">📰 Key Sources</h3>';
+    
+    analysis.sources.forEach((source, idx) => {
+      sourcesHTML += `
+        <div style="margin-bottom: ${idx < analysis.sources.length - 1 ? '12px' : '0'}; padding-bottom: ${idx < analysis.sources.length - 1 ? '12px' : '0'}; border-bottom: ${idx < analysis.sources.length - 1 ? '1px solid rgba(16, 185, 129, 0.2)' : 'none'};">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+            <strong style="color: #e5e7eb; font-size: 14px;">${source.title}</strong>
+            <span style="color: #9ca3af; font-size: 12px; white-space: nowrap; margin-left: 12px;">${source.date}</span>
+          </div>
+          <p style="margin: 4px 0; color: #d1d5db; font-size: 13px; line-height: 1.4;">${source.description}</p>
+          <a href="${source.url}" target="_blank" style="color: #34d399; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+            Read more →
+          </a>
+        </div>
+      `;
     });
-
-    card.appendChild(outcomesContainer);
-  } else {
-    // Fallback view button
-    const viewButton = document.createElement("button");
-    viewButton.style.cssText = `
-      width: 100%;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid #4f46e5;
-      color: #818cf8;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    `;
-    viewButton.textContent = "View Market";
-    viewButton.onmouseenter = () => {
-      viewButton.style.background = "rgba(99, 102, 241, 0.2)";
-    };
-    viewButton.onmouseleave = () => {
-      viewButton.style.background = "rgba(99, 102, 241, 0.1)";
-    };
-    card.appendChild(viewButton);
+    
+    sourceSection.innerHTML = sourcesHTML;
+    container.appendChild(sourceSection);
   }
 
-  // Remove click handler from card since buttons now handle it
-  return card;
+  // Key Insights Section
+  if (analysis.insights && analysis.insights.length > 0) {
+    const insightsSection = document.createElement("div");
+    insightsSection.style.cssText = `
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid #6366f1;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    `;
+    
+    let insightsHTML = '<h3 style="color: #818cf8; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">📊 Key Insights</h3>';
+    insightsHTML += '<ul style="margin: 0; padding-left: 20px; color: #e5e7eb; font-size: 14px; line-height: 1.8;">';
+    
+    analysis.insights.forEach(insight => {
+      insightsHTML += `<li style="margin-bottom: 8px;">${insight}</li>`;
+    });
+    
+    insightsHTML += '</ul>';
+    insightsSection.innerHTML = insightsHTML;
+    container.appendChild(insightsSection);
+  }
+
+  // AI Prediction Section
+  if (analysis.prediction) {
+    const predictionSection = document.createElement("div");
+    predictionSection.style.cssText = `
+      background: rgba(147, 51, 234, 0.1);
+      border: 1px solid #9333ea;
+      border-radius: 12px;
+      padding: 16px;
+    `;
+    
+    predictionSection.innerHTML = `
+      <h3 style="color: #c084fc; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">🤖 AI Prediction</h3>
+      <div style="color: #e5e7eb; font-size: 14px; line-height: 1.6;">
+        <div style="margin-bottom: 12px;">
+          <strong style="color: #c084fc;">Outcome:</strong> ${analysis.prediction.outcome}
+        </div>
+        <div style="margin-bottom: 12px;">
+          <strong style="color: #c084fc;">Confidence:</strong> ${analysis.prediction.confidence}%
+        </div>
+        <div>
+          <strong style="color: #c084fc;">Reasoning:</strong> ${analysis.prediction.reasoning}
+        </div>
+      </div>
+    `;
+    container.appendChild(predictionSection);
+  }
+
+  return container;
+}
+
+async function fetchMarketAnalysis(market, selectedText) {
+  const API_KEY = "AIzaSyBPZ2Mcv-a3GZkEPsKUv1OXjOMhg8uD-YU";
+  const MODEL = "gemini-2.5-flash-lite";
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+  const prompt = `
+You are analyzing a prediction market in relation to some selected text. 
+
+Selected Text:
+"${selectedText}"
+
+Market Information:
+Title: ${market.title || market.question}
+Description: ${market.description || 'N/A'}
+Category: ${market.category || 'N/A'}
+
+Your task:
+1. Find 2-3 key news sources that first reported or are most relevant to the SELECTED TEXT (not the market itself)
+2. Provide 3-5 bullet-point key insights about how this topic has evolved
+3. Give a brief AI prediction for the market outcome based on current information
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "sources": [
+    {
+      "title": "Source name/headline",
+      "date": "YYYY-MM-DD or 'Recent'",
+      "url": "https://example.com (or 'N/A' if you don't know)",
+      "description": "One sentence about what this source says"
+    }
+  ],
+  "insights": [
+    "Brief insight point 1",
+    "Brief insight point 2", 
+    "Brief insight point 3"
+  ],
+  "prediction": {
+    "outcome": "Most likely outcome (Yes/No or description)",
+    "confidence": 75,
+    "reasoning": "One sentence explaining why"
+  }
+}
+
+Keep everything concise. Each insight should be ONE sentence max. Sources should be real and verifiable.
+`;
+
+  try {
+    const response = await fetch(`${endpoint}?key=${API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const modelOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
+    let analysis;
+    try {
+      const jsonStr = modelOutput.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      analysis = JSON.parse(jsonStr);
+    } catch (e) {
+      console.error("Failed to parse JSON:", e, modelOutput);
+      throw new Error("Failed to parse AI response");
+    }
+
+    return analysis;
+  } catch (error) {
+    console.error("Error fetching market analysis:", error);
+    throw error;
+  }
 }
 
 function createStat(label, value) {
@@ -384,7 +702,6 @@ function createOutcomeButton(outcome, idx, market) {
   const probability = Math.round(price * 100);
   const outcomeName = outcome.outcome || `Option ${idx + 1}`;
   
-  // Color scheme based on option
   const isYes = outcomeName.toLowerCase().includes("yes");
   const isNo = outcomeName.toLowerCase().includes("no");
   
@@ -420,7 +737,6 @@ function createOutcomeButton(outcome, idx, market) {
     width: 100%;
   `;
 
-  // Format probability display - handle edge cases
   let displayProb;
   if (probability <= 0) {
     displayProb = "<1%";
@@ -443,7 +759,6 @@ function createOutcomeButton(outcome, idx, market) {
   };
 
   button.onclick = () => {
-    // Open main market in Polymarket
     const slug = market.slug || market.ticker;
     const url = slug ? `https://polymarket.com/event/${slug}` : null;
     if (url) {
@@ -456,14 +771,13 @@ function createOutcomeButton(outcome, idx, market) {
 }
 
 function createMultiMarketButton(mk, idx, parentMarket) {
-  // Parse the price for this specific market
   let price = 0;
   if (mk.outcomePrices) {
     try {
       const prices = typeof mk.outcomePrices === 'string'
         ? JSON.parse(mk.outcomePrices)
         : mk.outcomePrices;
-      price = parseFloat(prices[0] || 0); // First outcome (usually "Yes")
+      price = parseFloat(prices[0] || 0);
     } catch (e) {
       price = mk.lastTradePrice || 0;
     }
@@ -473,7 +787,6 @@ function createMultiMarketButton(mk, idx, parentMarket) {
 
   const probability = Math.round(price * 100);
   
-  // Format probability display
   let displayProb;
   if (probability <= 0) {
     displayProb = "<1%";
@@ -483,16 +796,13 @@ function createMultiMarketButton(mk, idx, parentMarket) {
     displayProb = `${probability}%`;
   }
 
-  // Color scheme same as Yes/No buttons - based on probability
   let bgColor, borderColor, textColor, hoverBg;
   if (probability >= 50) {
-    // High probability - green like "Yes"
     bgColor = "rgba(16, 185, 129, 0.1)";
     borderColor = "#10b981";
     textColor = "#34d399";
     hoverBg = "rgba(16, 185, 129, 0.2)";
   } else {
-    // Low probability - red like "No"
     bgColor = "rgba(239, 68, 68, 0.1)";
     borderColor = "#ef4444";
     textColor = "#f87171";
@@ -526,7 +836,6 @@ function createMultiMarketButton(mk, idx, parentMarket) {
   };
 
   button.onclick = () => {
-    // Open parent market in Polymarket (not the individual sub-market)
     const slug = parentMarket.slug || parentMarket.ticker;
     const url = slug ? `https://polymarket.com/event/${slug}` : null;
     if (url) {
@@ -572,10 +881,8 @@ export async function fetchMarkets(keyWords, progressCallback, limit = 10) {
   }
 }
 
-// Simulate async keyword generation
-// Uses Gemini 2.5 Flash Lite to generate search keywords/phrases from input text
 export async function getkeywords(text) {
-  const API_KEY = "AIzaSyBPZ2Mcv-a3GZkEPsKUv1OXjOMhg8uD-YU"; // 🔒 Replace with your Gemini API key
+  const API_KEY = "AIzaSyBPZ2Mcv-a3GZkEPsKUv1OXjOMhg8uD-YU";
   const MODEL = "gemini-2.5-flash-lite";
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
@@ -592,29 +899,30 @@ A text snippet (which may be in any language). It can describe news, events, opi
 ### TASK:
 1. **Understand the meaning of the text.**
    - Identify all key topics, entities, people, organizations, places, currencies, technologies, or events mentioned or implied.
-   - Translate the text to English if it’s in another language.
+   - Translate the text to English if it's in another language.
 
 2. **Generate relevant Polymarket search keywords.**
    - Focus on topics that are likely to have prediction markets or could plausibly have them (e.g., elections, price movements, policy outcomes, sports results, crypto events, geopolitical risks, major company announcements).
    - Include synonyms and event formulations:  
-     e.g. “Ethereum ETF approval”, “US presidential election”, “Bitcoin price above 100k”, “Biden approval rating”.
+     e.g. "Ethereum ETF approval", "US presidential election", "Bitcoin price above 100k", "Biden approval rating".
    - Prefer concise, market-style keyword phrases (2–6 words each).
 
 3. **Be smart with context and reasoning.**
    - If the snippet mentions two politicians → include their countries, possible elections, and related geopolitical events.  
-   - If it’s about a company → include keywords about its stock, regulation, and industry trends.  
-   - If it’s about crypto → include keywords like “price”, “ETF approval”, “adoption”, “network upgrade”.  
+   - If it's about a company → include keywords about its stock, regulation, and industry trends.  
+   - If it's about crypto → include keywords like "price", "ETF approval", "adoption", "network upgrade".  
    - If the snippet is general → infer related global or economic prediction themes.
 
 4. **Output format:**
    Return a JSON array of 5–15 short keyword phrases (strings) that would be good Polymarket search queries.
     MAX 10 
+
 ---
 
 ### EXAMPLE:
 
 **Input:**
-“Recent reports suggest tension between the US and China over semiconductor exports.”
+"Recent reports suggest tension between the US and China over semiconductor exports."
 
 **Output:**
 [
@@ -652,19 +960,16 @@ ${text}
     const data = await response.json();
     const modelOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // Try to parse JSON array from model output
     let keywords = [];
     try {
       keywords = JSON.parse(modelOutput.replace(/\n/g, ""));
     } catch {
-      // fallback: split by commas if JSON fails
       keywords = modelOutput
         .split(/,|\n/)
         .map((k) => k.trim())
         .filter(Boolean);
     }
 
-    //console.log("Generated keywords:", keywords);
     return keywords;
   } catch (error) {
     console.error("Error calling Gemini API for keywords:", error);
@@ -672,18 +977,12 @@ ${text}
   }
 }
 
-// Simulate async market validation
-// sheafaset 1-100
-// Uses Gemini 2.5 Flash Lite to rate how related a market is to given text (1–100)
-// Uses Gemini 2.5 Flash Lite to rate how related a market is to given text (1–100)
-// Uses Gemini 2.5 Flash Lite to rate a list of markets against the text (returns array of scores)
 export async function isvalidBulk(marketsList, text) {
-  const API_KEY = "AIzaSyBPZ2Mcv-a3GZkEPsKUv1OXjOMhg8uD-YU"; // 🔒 Replace with your Gemini API key
+  const API_KEY = "AIzaSyBPZ2Mcv-a3GZkEPsKUv1OXjOMhg8uD-YU";
   const MODEL = "gemini-2.5-flash-lite";
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
   try {
-    // Only pick essential fields to reduce token usage
     const minimalMarkets = marketsList.map((market) => ({
       title: market.title,
       subtitle: market.subtitle,
@@ -693,17 +992,38 @@ export async function isvalidBulk(marketsList, text) {
       ticker: market.ticker,
     }));
 
-    // Build prompt for all markets
-    const prompt = `
-Rate from 1 to 100 how related each of the following prediction markets is to the given text.
-Respond ONLY with a JSON array of numbers in the same order as the markets, like: [90, 15, 78] array should be the same size as given number of markets.
+   const prompt = `You are a prediction market analyst. Rate how much the given text could impact each prediction market from 1-100.
+
+SCORING GUIDELINES:
+- 90-100: Direct, immediate impact (e.g., Fed announcement for inflation markets, election results for political markets)
+- 70-89: Strong indirect impact (e.g., major policy changes affecting related sectors, geopolitical events affecting trade)
+- 50-69: Moderate relevance (e.g., economic indicators for sector-specific markets, regulatory hints)
+- 30-49: Weak connection (e.g., tangential mentions, background context)
+- 10-29: Minimal relevance (e.g., same topic area but no clear impact pathway)
+- 1-9: Nearly irrelevant (e.g., only keyword overlap)
+- 0: Completely unrelated
+
+IMPACT FACTORS TO CONSIDER:
+1. Direct causality: Does this event directly affect the market outcome?
+2. Geographic relevance: Does the location/country match the market scope?
+3. Temporal proximity: Is this event close to the market's resolution date?
+4. Authority level: Are key decision-makers or influential figures involved?
+5. Magnitude: How significant is the event (policy change vs. routine meeting)?
+6. Market sensitivity: How volatile/reactive is this type of market to news?
+
+EXAMPLES:
+- "Fed raises interest rates by 0.5%" → Inflation markets (95), Stock market predictions (85), Housing markets (80)
+- "Two EU leaders meet for trade discussions" → EU trade markets (75), Their countries' economic markets (70), Global trade (50)
+- "Celebrity tweets about cryptocurrency" → That specific crypto (40), Crypto adoption markets (25), Unrelated crypto (10)
 
 Text:
 ${text}
 
 Markets:
 ${JSON.stringify(minimalMarkets, null, 2)}
-`;
+
+Respond ONLY with a JSON array of numbers (1-100) in the exact same order as the markets above.
+Example format: [85, 42, 15, 90, 8]`;
 
     const response = await fetch(`${endpoint}?key=${API_KEY}`, {
       method: "POST",
@@ -725,18 +1045,15 @@ ${JSON.stringify(minimalMarkets, null, 2)}
     const data = await response.json();
     const modelOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // Try to parse JSON array from model output
     let scores = [];
     try {
       scores = JSON.parse(modelOutput.replace(/\n/g, ""));
     } catch {
-      // fallback: extract all numbers in order
       scores = modelOutput.match(/\d+/g)?.map((n) => parseInt(n, 10)) || [];
     }
     console.log("scores:  ", scores);
-    // Make sure scores array length matches markets list
+    
     if (scores.length !== marketsList.length) {
-      // Only add zeros to the end
       while (scores.length < marketsList.length) {
         scores.push(0);
       }
